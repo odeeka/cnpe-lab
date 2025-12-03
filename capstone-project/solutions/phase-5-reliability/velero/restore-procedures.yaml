@@ -1,0 +1,140 @@
+# Velero Restore Procedures
+
+# This file documents restore procedures for disaster recovery
+
+# Manual Backup (on-demand)
+# kubectl apply -f - <<EOF
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: bookstore-prod-manual-$(date +%Y%m%d-%H%M%S)
+  namespace: velero
+spec:
+  includedNamespaces:
+    - bookstore-prod
+  storageLocation: default
+  volumeSnapshotLocations:
+    - default
+  ttl: 720h
+  snapshotVolumes: true
+  includeClusterResources: true
+# EOF
+
+---
+# Restore from backup
+# kubectl apply -f - <<EOF
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  name: bookstore-prod-restore
+  namespace: velero
+spec:
+  backupName: bookstore-prod-daily-20240101020000
+  includedNamespaces:
+    - bookstore-prod
+  restorePVs: true
+  preserveNodePorts: true
+# EOF
+
+---
+# Restore to different namespace (for testing)
+# kubectl apply -f - <<EOF
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  name: bookstore-restore-test
+  namespace: velero
+spec:
+  backupName: bookstore-prod-daily-20240101020000
+  includedNamespaces:
+    - bookstore-prod
+  namespaceMapping:
+    bookstore-prod: bookstore-restore-test
+  restorePVs: true
+# EOF
+
+---
+# ConfigMap with restore procedures documentation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: restore-procedures
+  namespace: velero
+data:
+  restore-procedures.md: |
+    # BookStore Disaster Recovery Procedures
+    
+    ## Prerequisites
+    - Velero CLI installed
+    - kubectl configured with cluster access
+    - Access to backup storage (S3)
+    
+    ## List Available Backups
+    ```bash
+    velero backup get
+    velero backup describe <backup-name>
+    velero backup logs <backup-name>
+    ```
+    
+    ## Full Namespace Restore
+    ```bash
+    # Create restore from latest backup
+    velero restore create --from-backup bookstore-prod-daily-<timestamp>
+    
+    # Monitor restore progress
+    velero restore describe <restore-name>
+    velero restore logs <restore-name>
+    ```
+    
+    ## Partial Restore (specific resources)
+    ```bash
+    # Restore only secrets and configmaps
+    velero restore create \
+      --from-backup bookstore-prod-daily-<timestamp> \
+      --include-resources secrets,configmaps
+    
+    # Restore specific deployment
+    velero restore create \
+      --from-backup bookstore-prod-daily-<timestamp> \
+      --selector app=catalog-service
+    ```
+    
+    ## Restore to Different Namespace
+    ```bash
+    velero restore create \
+      --from-backup bookstore-prod-daily-<timestamp> \
+      --namespace-mappings bookstore-prod:bookstore-restore-test
+    ```
+    
+    ## Database Recovery
+    1. Restore PVC with Velero
+    2. Verify PostgreSQL pod starts correctly
+    3. Check database integrity:
+       ```bash
+       kubectl exec -it postgres-0 -- psql -U postgres -c "SELECT pg_is_in_recovery();"
+       ```
+    
+    ## Post-Restore Verification
+    1. Check all pods are running:
+       ```bash
+       kubectl get pods -n bookstore-prod
+       ```
+    2. Verify services are accessible:
+       ```bash
+       kubectl get svc -n bookstore-prod
+       ```
+    3. Run health checks:
+       ```bash
+       curl -f http://bookstore.local/api/health
+       ```
+    4. Verify data integrity in databases
+    5. Check application logs for errors
+    
+    ## Rollback Restore
+    If restore causes issues:
+    ```bash
+    velero restore delete <restore-name>
+    # Or delete and re-restore
+    kubectl delete namespace bookstore-prod
+    velero restore create --from-backup <previous-backup>
+    ```

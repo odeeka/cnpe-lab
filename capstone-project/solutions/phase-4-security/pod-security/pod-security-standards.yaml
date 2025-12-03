@@ -1,0 +1,85 @@
+# Pod Security Standards Configuration
+
+# Apply restricted Pod Security Standard to production namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bookstore-prod
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+---
+# Apply baseline Pod Security Standard to staging namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bookstore-staging
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+---
+# Apply privileged Pod Security Standard to dev namespace (more permissive for debugging)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bookstore-dev
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: baseline
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+---
+# ResourceQuota to limit resource consumption
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: bookstore-quota
+  namespace: bookstore-prod
+spec:
+  hard:
+    requests.cpu: "20"
+    requests.memory: 40Gi
+    limits.cpu: "40"
+    limits.memory: 80Gi
+    persistentvolumeclaims: "10"
+    pods: "100"
+    services: "20"
+    secrets: "50"
+    configmaps: "50"
+---
+# LimitRange to set default resource limits
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: bookstore-limits
+  namespace: bookstore-prod
+spec:
+  limits:
+    - type: Container
+      default:
+        memory: "256Mi"
+        cpu: "500m"
+      defaultRequest:
+        memory: "128Mi"
+        cpu: "100m"
+      max:
+        memory: "2Gi"
+        cpu: "2"
+      min:
+        memory: "64Mi"
+        cpu: "50m"
+    - type: PersistentVolumeClaim
+      max:
+        storage: "50Gi"
+      min:
+        storage: "1Gi"

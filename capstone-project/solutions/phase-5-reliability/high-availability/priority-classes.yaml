@@ -1,0 +1,131 @@
+# Priority Classes for BookStore Application
+
+# System Critical - for cluster components
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: system-critical
+value: 1000000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "System critical components that should never be preempted"
+---
+# Production Critical - for production databases
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: production-critical
+value: 900000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "Production databases and critical stateful services"
+---
+# Production High - for core application services
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: production-high
+value: 800000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "Core production services like API Gateway"
+---
+# Production Medium - for standard application pods
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: production-medium
+value: 500000
+globalDefault: true
+preemptionPolicy: PreemptLowerPriority
+description: "Standard production workloads"
+---
+# Staging - for staging environment
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: staging
+value: 300000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "Staging environment workloads"
+---
+# Development - for dev environment
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: development
+value: 100000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "Development environment workloads - can be preempted"
+---
+# Batch Jobs - lowest priority
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: batch
+value: 50000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "Batch jobs and background tasks"
+---
+# Example: Apply priority class to PostgreSQL
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-with-priority
+  namespace: bookstore-prod
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      priorityClassName: production-critical
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+---
+# Example: Apply priority class to API Gateway
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway-with-priority
+  namespace: bookstore-prod
+spec:
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      priorityClassName: production-high
+      containers:
+        - name: api-gateway
+          image: bookstore/api-gateway:latest
+---
+# Example: Staging pods with lower priority
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-staging
+  namespace: bookstore-staging
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      priorityClassName: staging
+      containers:
+        - name: frontend
+          image: bookstore/frontend:staging

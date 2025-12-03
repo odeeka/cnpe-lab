@@ -1,0 +1,93 @@
+# Production Environment Overlay
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: bookstore-prod
+
+resources:
+  - ../../base
+  - hpa.yaml
+  - pdb.yaml
+
+# Production-specific patches
+patches:
+  # Production replicas
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+    target:
+      kind: Deployment
+      name: frontend
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+    target:
+      kind: Deployment
+      name: api-gateway
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+    target:
+      kind: Deployment
+      name: catalog-service
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+    target:
+      kind: Deployment
+      name: order-service
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      name: user-service
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      name: payment-service
+  # Production resource limits
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "512Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "1000m"
+    target:
+      kind: Deployment
+
+# Environment-specific labels
+commonLabels:
+  environment: production
+
+# Use production images with specific versions
+images:
+  - name: bookstore/frontend
+    newTag: v1.0.0
+  - name: bookstore/api-gateway
+    newTag: v1.0.0
+  - name: bookstore/catalog-service
+    newTag: v1.0.0
+  - name: bookstore/order-service
+    newTag: v1.0.0
+  - name: bookstore/user-service
+    newTag: v1.0.0
+  - name: bookstore/payment-service
+    newTag: v1.0.0
+
+# Production-specific config
+configMapGenerator:
+  - name: environment-config
+    literals:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=warn
+      - DEBUG=false

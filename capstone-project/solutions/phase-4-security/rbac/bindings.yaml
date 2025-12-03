@@ -1,0 +1,132 @@
+# RoleBindings and ClusterRoleBindings
+
+# Bind config-reader role to service accounts
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: catalog-service-config-reader
+  namespace: bookstore-prod
+subjects:
+  - kind: ServiceAccount
+    name: catalog-service-sa
+    namespace: bookstore-prod
+roleRef:
+  kind: Role
+  name: config-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: order-service-config-reader
+  namespace: bookstore-prod
+subjects:
+  - kind: ServiceAccount
+    name: order-service-sa
+    namespace: bookstore-prod
+roleRef:
+  kind: Role
+  name: config-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: user-service-config-reader
+  namespace: bookstore-prod
+subjects:
+  - kind: ServiceAccount
+    name: user-service-sa
+    namespace: bookstore-prod
+roleRef:
+  kind: Role
+  name: config-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: payment-service-config-reader
+  namespace: bookstore-prod
+subjects:
+  - kind: ServiceAccount
+    name: payment-service-sa
+    namespace: bookstore-prod
+roleRef:
+  kind: Role
+  name: config-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+# Bind ArgoCD to manage BookStore resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argocd-bookstore-manager-binding
+  namespace: bookstore-prod
+subjects:
+  - kind: ServiceAccount
+    name: argocd-application-sa
+    namespace: bookstore-prod
+roleRef:
+  kind: ClusterRole
+  name: argocd-bookstore-manager
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argocd-bookstore-manager-binding
+  namespace: bookstore-staging
+subjects:
+  - kind: ServiceAccount
+    name: argocd-application-sa
+    namespace: bookstore-prod
+roleRef:
+  kind: ClusterRole
+  name: argocd-bookstore-manager
+  apiGroup: rbac.authorization.k8s.io
+---
+# ClusterRoleBinding for developers
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bookstore-developers
+subjects:
+  - kind: Group
+    name: developers
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: bookstore-developer
+  apiGroup: rbac.authorization.k8s.io
+---
+# ClusterRoleBinding for SRE team
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bookstore-sre-team
+subjects:
+  - kind: Group
+    name: sre-team
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: bookstore-sre
+  apiGroup: rbac.authorization.k8s.io
+---
+# ClusterRoleBinding for cluster viewer
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: bookstore-cluster-viewers
+subjects:
+  - kind: Group
+    name: developers
+    apiGroup: rbac.authorization.k8s.io
+  - kind: Group
+    name: sre-team
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: bookstore-cluster-viewer
+  apiGroup: rbac.authorization.k8s.io

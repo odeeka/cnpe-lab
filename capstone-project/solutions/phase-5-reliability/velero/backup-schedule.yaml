@@ -1,0 +1,87 @@
+# Velero Backup Configuration
+
+# Backup Storage Location
+apiVersion: velero.io/v1
+kind: BackupStorageLocation
+metadata:
+  name: default
+  namespace: velero
+spec:
+  provider: aws
+  objectStorage:
+    bucket: bookstore-backups
+    prefix: velero
+  config:
+    region: us-west-2
+    s3ForcePathStyle: "false"
+---
+# Volume Snapshot Location
+apiVersion: velero.io/v1
+kind: VolumeSnapshotLocation
+metadata:
+  name: default
+  namespace: velero
+spec:
+  provider: aws
+  config:
+    region: us-west-2
+---
+# Backup schedule for production namespace
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: bookstore-prod-daily
+  namespace: velero
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  template:
+    includedNamespaces:
+      - bookstore-prod
+    storageLocation: default
+    volumeSnapshotLocations:
+      - default
+    ttl: 720h  # 30 days retention
+    includeClusterResources: true
+    snapshotVolumes: true
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/part-of: bookstore
+---
+# Hourly backup for critical data
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: bookstore-prod-hourly
+  namespace: velero
+spec:
+  schedule: "0 * * * *"  # Every hour
+  template:
+    includedNamespaces:
+      - bookstore-prod
+    includedResources:
+      - persistentvolumeclaims
+      - persistentvolumes
+      - secrets
+      - configmaps
+    storageLocation: default
+    volumeSnapshotLocations:
+      - default
+    ttl: 168h  # 7 days retention
+    snapshotVolumes: true
+---
+# Backup for staging namespace
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: bookstore-staging-weekly
+  namespace: velero
+spec:
+  schedule: "0 3 * * 0"  # Weekly on Sunday at 3 AM
+  template:
+    includedNamespaces:
+      - bookstore-staging
+    storageLocation: default
+    volumeSnapshotLocations:
+      - default
+    ttl: 336h  # 14 days retention
+    snapshotVolumes: true

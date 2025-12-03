@@ -1,0 +1,144 @@
+# Kustomization for Pre-built Demo Images
+# Use these images when you want to focus on K8s concepts without building apps
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../phase-2-application/base
+
+# Override images with pre-built demo versions
+images:
+  # Frontend - Simple nginx serving static content
+  - name: bookstore/frontend
+    newName: nginx
+    newTag: 1.25-alpine
+  
+  # API Gateway - Nginx as reverse proxy
+  - name: bookstore/api-gateway
+    newName: nginx
+    newTag: 1.25-alpine
+  
+  # Backend services - Use http-echo for demo responses
+  - name: bookstore/catalog-service
+    newName: hashicorp/http-echo
+    newTag: alpine
+  
+  - name: bookstore/order-service
+    newName: hashicorp/http-echo
+    newTag: alpine
+  
+  - name: bookstore/user-service
+    newName: hashicorp/http-echo
+    newTag: alpine
+  
+  - name: bookstore/payment-service
+    newName: hashicorp/http-echo
+    newTag: alpine
+
+# Add demo configuration
+configMapGenerator:
+  - name: demo-config
+    literals:
+      - DEMO_MODE=true
+      - APP_VERSION=demo-v1.0.0
+
+# Patches for demo-specific configuration
+patches:
+  # Frontend nginx config for demo
+  - target:
+      kind: Deployment
+      name: frontend
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/ports/0/containerPort
+        value: 80
+  
+  # http-echo services listen on port 5678
+  - target:
+      kind: Deployment
+      name: catalog-service
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/ports/0/containerPort
+        value: 5678
+      - op: add
+        path: /spec/template/spec/containers/0/args
+        value:
+          - "-text=Catalog Service Response"
+          - "-listen=:5678"
+  
+  - target:
+      kind: Deployment
+      name: order-service
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/ports/0/containerPort
+        value: 5678
+      - op: add
+        path: /spec/template/spec/containers/0/args
+        value:
+          - "-text=Order Service Response"
+          - "-listen=:5678"
+  
+  - target:
+      kind: Deployment
+      name: user-service
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/ports/0/containerPort
+        value: 5678
+      - op: add
+        path: /spec/template/spec/containers/0/args
+        value:
+          - "-text=User Service Response"
+          - "-listen=:5678"
+  
+  - target:
+      kind: Deployment
+      name: payment-service
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/ports/0/containerPort
+        value: 5678
+      - op: add
+        path: /spec/template/spec/containers/0/args
+        value:
+          - "-text=Payment Service Response"
+          - "-listen=:5678"
+
+  # Update service ports for http-echo
+  - target:
+      kind: Service
+      name: catalog-service
+    patch: |-
+      - op: replace
+        path: /spec/ports/0/targetPort
+        value: 5678
+  
+  - target:
+      kind: Service
+      name: order-service
+    patch: |-
+      - op: replace
+        path: /spec/ports/0/targetPort
+        value: 5678
+  
+  - target:
+      kind: Service
+      name: user-service
+    patch: |-
+      - op: replace
+        path: /spec/ports/0/targetPort
+        value: 5678
+  
+  - target:
+      kind: Service
+      name: payment-service
+    patch: |-
+      - op: replace
+        path: /spec/ports/0/targetPort
+        value: 5678
+
+commonLabels:
+  demo-mode: "true"

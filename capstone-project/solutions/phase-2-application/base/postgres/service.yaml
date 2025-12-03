@@ -1,0 +1,30 @@
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+  clusterIP: None  # Headless service for StatefulSet
+---
+# PostgreSQL Service for client connections
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-client
+  labels:
+    app: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432

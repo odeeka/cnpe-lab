@@ -15,59 +15,169 @@ kind create cluster --config kind-cluster.yaml
 
 ## Learning Modules
 
-### [Module 1: Kubernetes Fundamentals & Container Basics](./module-01-k8s-fundamentals/) ⭐ START HERE
-
-Master the foundation of cloud-native engineering with comprehensive hands-on labs:
-
-**What's Covered:**
-- 🎯 **Lab 1**: Cluster setup, kubectl mastery, architecture
-- 🎯 **Lab 2**: Pods, multi-container patterns, init containers
-- 🎯 **Lab 3**: Deployments, scaling, rolling updates, rollbacks
-- 🎯 **Lab 4**: Services (ClusterIP, NodePort, LoadBalancer), DNS
-- 🎯 **Lab 5**: ConfigMaps, Secrets, configuration management
-- 🎯 **Lab 6**: Storage (PV/PVC), StatefulSets, dynamic provisioning
-- 🎯 **Lab 7**: Resource management, QoS, HPA, ResourceQuotas
-- 🎯 **Lab 8**: Debugging, troubleshooting, health checks
-
-**Status**: ✅ **COMPLETE** - 8 labs + comprehensive assessment
-**Time**: 19-26 hours (12-16 hours labs + 3-4 hours assessment + review)
-**Prerequisites**: Docker, kubectl, kind installed
-**Assessment**: 20 practical tasks (70% to pass)
-
-[**📖 Quick Reference Guide**](./module-01-k8s-fundamentals/QUICK-REFERENCE.md) | [**🎯 Start Lab 1**](./module-01-k8s-fundamentals/lab-01-setup/)
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        CNPE Lab Curriculum                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  Module 1          Module 2          Module 3          Module 4              │
+│  ┌──────────┐      ┌──────────┐      ┌──────────┐      ┌──────────┐         │
+│  │Kubernetes│─────►│  GitOps  │─────►│  CI/CD   │─────►│Observ-   │         │
+│  │Fundament.│      │ ArgoCD   │      │ Pipelines│      │ability   │         │
+│  └──────────┘      └──────────┘      └──────────┘      └──────────┘         │
+│       │                                                      │               │
+│       │                                                      ▼               │
+│       │            Module 5          Module 6          Module 7              │
+│       │            ┌──────────┐      ┌──────────┐      ┌──────────┐         │
+│       └───────────►│Platform  │─────►│Security  │─────►│Disaster  │         │
+│                    │Engineer. │      │Hardening │      │Recovery  │         │
+│                    └──────────┘      └──────────┘      └──────────┘         │
+│                                                              │               │
+│                         Module 8                             │               │
+│                         ┌──────────┐                         │               │
+│                         │Production│◄────────────────────────┘               │
+│                         │Operations│                                         │
+│                         └────┬─────┘                                         │
+│                              │                                               │
+│                              ▼                                               │
+│                    ┌─────────────────┐                                       │
+│                    │    CAPSTONE     │                                       │
+│                    │    PROJECT      │                                       │
+│                    └─────────────────┘                                       │
+│                                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-### Module 2: GitOps & Continuous Delivery (Coming Soon)
+### [Module 1: Kubernetes Fundamentals](./module-01-k8s-fundamentals/) ⭐ START HERE
 
-- ArgoCD installation and GitOps workflows
-- Progressive delivery (Canary, Blue/Green)
-- Argo Rollouts and deployment strategies
-- Multi-cluster management
+Master the foundation of cloud-native engineering with comprehensive hands-on labs.
 
-### Module 3: Infrastructure as Code (Planned)
+| Labs | Topics |
+|------|--------|
+| Lab 1-2 | Cluster setup, Pods, multi-container patterns |
+| Lab 3-4 | Deployments, Services, DNS |
+| Lab 5-6 | ConfigMaps, Secrets, Storage, StatefulSets |
+| Lab 7-8 | Resources, HPA, Debugging |
 
-- Terraform for Kubernetes
-- Crossplane for cloud-native IaC
-- Helm charts and Kustomize
+**Status**: ✅ Complete | **Time**: 19-26 hours | [**📖 Quick Reference**](./module-01-k8s-fundamentals/QUICK-REFERENCE.md)
 
-### Module 4: Developer Portals (Planned)
+---
 
-- Backstage.io platform
-- Software templates
-- Service catalog design
+### [Module 2: GitOps & Continuous Delivery](./module-02-gitops/)
 
-### Module 5: Observability (Planned)
+GitOps workflows with ArgoCD and progressive delivery patterns.
 
-- OpenTelemetry setup
-- Prometheus & Grafana
-- Distributed tracing
+| Labs | Topics |
+|------|--------|
+| Lab 1-2 | ArgoCD setup, Application patterns |
+| Lab 3-4 | Argo Rollouts, Workflows |
+| Lab 5-6 | Multi-cluster, Advanced patterns |
 
-### Module 6: Security & Policy (Planned)
+**Status**: ✅ Complete | **Time**: 8-10 hours | [**📖 Quick Reference**](./module-02-gitops/QUICK-REFERENCE.md)
 
-- Kyverno policy engine
-- Image signing with Cosign
-- Runtime security with Falco
+---
+
+### [Module 3: CI/CD Pipelines](./module-03-cicd/)
+
+Build comprehensive CI/CD pipelines with GitHub Actions and Tekton.
+
+| Labs | Topics |
+|------|--------|
+| Lab 1-2 | GitHub Actions, Container builds |
+| Lab 3-4 | Tekton, GitOps integration |
+| Lab 5-6 | Testing, Advanced patterns |
+
+**Status**: ✅ Complete | **Time**: 8-10 hours | [**📖 Quick Reference**](./module-03-cicd/QUICK-REFERENCE.md)
+
+---
+
+### [Module 4: Observability](./module-04-observability/)
+
+Set up comprehensive monitoring, logging, and tracing with Prometheus, Grafana, and Loki.
+
+| Labs | Topics |
+|------|--------|
+| Lab 1-2 | Prometheus, Grafana dashboards |
+| Lab 3-4 | Loki logging, Distributed tracing |
+| Lab 5-6 | Alerting, Advanced observability |
+
+**Status**: ✅ Complete | **Time**: 8-10 hours | [**📖 Quick Reference**](./module-04-observability/QUICK-REFERENCE.md)
+
+---
+
+### [Module 5: Platform Engineering](./module-05-platform/)
+
+Build internal developer platforms with Backstage and Crossplane.
+
+| Labs | Topics |
+|------|--------|
+| Lab 1-2 | Backstage, Crossplane |
+| Lab 3-4 | Golden paths, Automation |
+| Lab 5-6 | Cost management, Multi-tenancy |
+
+**Status**: ✅ Complete | **Time**: 8-10 hours | [**📖 Quick Reference**](./module-05-platform/QUICK-REFERENCE.md)
+
+---
+
+### [Module 6: Security](./module-06-security/)
+
+Implement comprehensive security hardening for Kubernetes clusters.
+
+| Labs | Topics |
+|------|--------|
+| Lab 1-2 | Cluster security, Pod security |
+| Lab 3-4 | Network policies, Secrets management |
+| Lab 5-6 | Supply chain, Runtime security |
+
+**Status**: ✅ Complete | **Time**: 8-10 hours | [**📖 Quick Reference**](./module-06-security/QUICK-REFERENCE.md)
+
+---
+
+### [Module 7: Disaster Recovery](./module-07-disaster-recovery/)
+
+Implement backup strategies and disaster recovery procedures.
+
+| Labs | Topics |
+|------|--------|
+| Lab 1-2 | Backup strategies, Velero |
+| Lab 3-4 | DR planning, Chaos engineering |
+
+**Status**: ✅ Complete | **Time**: 6-8 hours | [**📖 Quick Reference**](./module-07-disaster-recovery/QUICK-REFERENCE.md)
+
+---
+
+### [Module 8: Production Operations](./module-08-production-operations/)
+
+Master day-2 operations, upgrades, troubleshooting, and capacity planning.
+
+| Labs | Topics |
+|------|--------|
+| Lab 1-2 | Day 2 operations, Cluster upgrades |
+| Lab 3-4 | Troubleshooting, Cost optimization |
+| Lab 5 | Capacity planning |
+
+**Status**: ✅ Complete | **Time**: 8-10 hours | [**📖 Quick Reference**](./module-08-production-operations/QUICK-REFERENCE.md)
+
+---
+
+### [🏆 Capstone Project](./capstone-project/)
+
+**Build a Production-Ready Cloud Native Platform**
+
+Integrate all skills from Modules 1-8 to build and operate a complete platform:
+
+| Phase | Focus |
+|-------|-------|
+| Phase 1 | Foundation - Cluster & GitOps |
+| Phase 2 | Application - Microservices & CI/CD |
+| Phase 3 | Observability - Monitoring & Logging |
+| Phase 4 | Security - Hardening & Policies |
+| Phase 5 | Reliability - DR & Operations |
+| Phase 6 | Final Validation |
+
+**Status**: ✅ Complete | **Time**: 8-12 hours | **Difficulty**: Advanced
 
 ---
 

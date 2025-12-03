@@ -1,0 +1,160 @@
+# Demo Frontend Nginx Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-nginx-config
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name localhost;
+        
+        # Health check endpoint
+        location /health {
+            access_log off;
+            return 200 '{"status":"healthy","service":"frontend","version":"demo-v1.0.0"}';
+            add_header Content-Type application/json;
+        }
+        
+        # Metrics endpoint (fake for demo)
+        location /metrics {
+            access_log off;
+            return 200 '# HELP http_requests_total Total HTTP requests
+# TYPE http_requests_total counter
+http_requests_total{method="GET",status="200"} 1234
+';
+            add_header Content-Type text/plain;
+        }
+        
+        # API proxy to gateway
+        location /api/ {
+            proxy_pass http://api-gateway:8080/;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_cache_bypass $http_upgrade;
+        }
+        
+        # Root - serve demo page
+        location / {
+            root /usr/share/nginx/html;
+            index index.html;
+            try_files $uri $uri/ /index.html;
+        }
+    }
+  
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BookStore - CNPE Lab Demo</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .container {
+                background: white;
+                border-radius: 20px;
+                padding: 40px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                text-align: center;
+                max-width: 600px;
+            }
+            h1 { 
+                color: #1a202c;
+                font-size: 2.5rem;
+                margin-bottom: 10px;
+            }
+            .subtitle {
+                color: #718096;
+                font-size: 1.1rem;
+                margin-bottom: 30px;
+            }
+            .badge {
+                display: inline-block;
+                background: #48bb78;
+                color: white;
+                padding: 5px 15px;
+                border-radius: 20px;
+                font-size: 0.9rem;
+                margin-bottom: 30px;
+            }
+            .services {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+                margin-top: 20px;
+            }
+            .service {
+                background: #f7fafc;
+                padding: 15px;
+                border-radius: 10px;
+                border: 1px solid #e2e8f0;
+            }
+            .service-name {
+                font-weight: 600;
+                color: #2d3748;
+            }
+            .service-status {
+                color: #48bb78;
+                font-size: 0.85rem;
+            }
+            .footer {
+                margin-top: 30px;
+                color: #a0aec0;
+                font-size: 0.9rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>📚 BookStore</h1>
+            <p class="subtitle">CNPE Lab Capstone Project</p>
+            <span class="badge">Demo Mode Active</span>
+            
+            <h3 style="color: #4a5568; margin-bottom: 15px;">Microservices Status</h3>
+            <div class="services">
+                <div class="service">
+                    <div class="service-name">Frontend</div>
+                    <div class="service-status">✓ Running</div>
+                </div>
+                <div class="service">
+                    <div class="service-name">API Gateway</div>
+                    <div class="service-status">✓ Running</div>
+                </div>
+                <div class="service">
+                    <div class="service-name">Catalog Service</div>
+                    <div class="service-status">✓ Running</div>
+                </div>
+                <div class="service">
+                    <div class="service-name">Order Service</div>
+                    <div class="service-status">✓ Running</div>
+                </div>
+                <div class="service">
+                    <div class="service-name">User Service</div>
+                    <div class="service-status">✓ Running</div>
+                </div>
+                <div class="service">
+                    <div class="service-name">Payment Service</div>
+                    <div class="service-status">✓ Running</div>
+                </div>
+            </div>
+            
+            <p class="footer">
+                This is a demo deployment for the CNPE certification lab.<br>
+                Focus on Kubernetes concepts, not application code!
+            </p>
+        </div>
+    </body>
+    </html>

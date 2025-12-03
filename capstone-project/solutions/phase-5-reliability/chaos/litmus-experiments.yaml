@@ -1,0 +1,174 @@
+# LitmusChaos Experiments for BookStore
+
+# Pod Delete Experiment - Test pod failure recovery
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: pod-delete
+  namespace: bookstore-prod
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["delete", "get", "list", "watch"]
+      - apiGroups: ["apps"]
+        resources: ["deployments", "replicasets"]
+        verbs: ["get", "list", "watch"]
+    image: litmuschaos/go-runner:latest
+    imagePullPolicy: Always
+    args:
+      - -c
+      - ./experiments -name pod-delete
+    command:
+      - /bin/bash
+    env:
+      - name: TOTAL_CHAOS_DURATION
+        value: "30"
+      - name: CHAOS_INTERVAL
+        value: "10"
+      - name: FORCE
+        value: "false"
+---
+# Chaos Engine for API Gateway pod failure
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: api-gateway-chaos
+  namespace: bookstore-prod
+spec:
+  appinfo:
+    appns: bookstore-prod
+    applabel: app=api-gateway
+    appkind: deployment
+  engineState: active
+  chaosServiceAccount: litmus-admin
+  experiments:
+    - name: pod-delete
+      spec:
+        components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: "30"
+            - name: CHAOS_INTERVAL
+              value: "10"
+            - name: PODS_AFFECTED_PERC
+              value: "50"
+        probe:
+          - name: healthcheck
+            type: httpProbe
+            httpProbe/inputs:
+              url: http://api-gateway:8080/health
+              insecureSkipVerify: false
+              method:
+                get:
+                  criteria: ==
+                  responseCode: "200"
+            mode: Continuous
+            runProperties:
+              probeTimeout: 5
+              interval: 5
+              retry: 3
+---
+# Network Chaos - Latency injection
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: pod-network-latency
+  namespace: bookstore-prod
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["get", "list", "watch", "delete"]
+    image: litmuschaos/go-runner:latest
+    args:
+      - -c
+      - ./experiments -name pod-network-latency
+    command:
+      - /bin/bash
+    env:
+      - name: NETWORK_INTERFACE
+        value: "eth0"
+      - name: NETWORK_LATENCY
+        value: "200"  # 200ms latency
+      - name: TOTAL_CHAOS_DURATION
+        value: "60"
+---
+# Chaos Engine for network latency on catalog service
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: catalog-service-network-chaos
+  namespace: bookstore-prod
+spec:
+  appinfo:
+    appns: bookstore-prod
+    applabel: app=catalog-service
+    appkind: deployment
+  engineState: active
+  chaosServiceAccount: litmus-admin
+  experiments:
+    - name: pod-network-latency
+      spec:
+        components:
+          env:
+            - name: NETWORK_LATENCY
+              value: "500"  # 500ms latency
+            - name: TOTAL_CHAOS_DURATION
+              value: "120"
+            - name: PODS_AFFECTED_PERC
+              value: "100"
+---
+# CPU Stress Experiment
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: order-service-cpu-stress
+  namespace: bookstore-prod
+spec:
+  appinfo:
+    appns: bookstore-prod
+    applabel: app=order-service
+    appkind: deployment
+  engineState: active
+  chaosServiceAccount: litmus-admin
+  experiments:
+    - name: pod-cpu-hog
+      spec:
+        components:
+          env:
+            - name: CPU_CORES
+              value: "1"
+            - name: TOTAL_CHAOS_DURATION
+              value: "60"
+            - name: PODS_AFFECTED_PERC
+              value: "50"
+---
+# Memory Stress Experiment
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: user-service-memory-stress
+  namespace: bookstore-prod
+spec:
+  appinfo:
+    appns: bookstore-prod
+    applabel: app=user-service
+    appkind: deployment
+  engineState: active
+  chaosServiceAccount: litmus-admin
+  experiments:
+    - name: pod-memory-hog
+      spec:
+        components:
+          env:
+            - name: MEMORY_CONSUMPTION
+              value: "200"  # 200Mi
+            - name: TOTAL_CHAOS_DURATION
+              value: "60"
+            - name: PODS_AFFECTED_PERC
+              value: "50"

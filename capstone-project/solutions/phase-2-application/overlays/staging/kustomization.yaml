@@ -1,0 +1,53 @@
+# Staging Environment Overlay
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: bookstore-staging
+
+resources:
+  - ../../base
+
+# Staging-specific patches
+patches:
+  # Use 2 replicas for staging
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      name: frontend
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 2
+    target:
+      kind: Deployment
+      name: api-gateway
+
+# Environment-specific labels
+commonLabels:
+  environment: staging
+
+# Use staging images
+images:
+  - name: bookstore/frontend
+    newTag: staging
+  - name: bookstore/api-gateway
+    newTag: staging
+  - name: bookstore/catalog-service
+    newTag: staging
+  - name: bookstore/order-service
+    newTag: staging
+  - name: bookstore/user-service
+    newTag: staging
+  - name: bookstore/payment-service
+    newTag: staging
+
+# Staging-specific config
+configMapGenerator:
+  - name: environment-config
+    literals:
+      - ENVIRONMENT=staging
+      - LOG_LEVEL=info
+      - DEBUG=false

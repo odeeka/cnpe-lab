@@ -1,0 +1,176 @@
+# ServiceMonitors for BookStore Application
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: frontend-monitor
+  namespace: observability
+  labels:
+    app: frontend
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  namespaceSelector:
+    matchNames:
+      - bookstore-prod
+      - bookstore-staging
+      - bookstore-dev
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-gateway-monitor
+  namespace: observability
+  labels:
+    app: api-gateway
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: api-gateway
+  namespaceSelector:
+    matchNames:
+      - bookstore-prod
+      - bookstore-staging
+      - bookstore-dev
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: catalog-service-monitor
+  namespace: observability
+  labels:
+    app: catalog-service
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: catalog-service
+  namespaceSelector:
+    matchNames:
+      - bookstore-prod
+      - bookstore-staging
+      - bookstore-dev
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: order-service-monitor
+  namespace: observability
+  labels:
+    app: order-service
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: order-service
+  namespaceSelector:
+    matchNames:
+      - bookstore-prod
+      - bookstore-staging
+      - bookstore-dev
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: user-service-monitor
+  namespace: observability
+  labels:
+    app: user-service
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: user-service
+  namespaceSelector:
+    matchNames:
+      - bookstore-prod
+      - bookstore-staging
+      - bookstore-dev
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: payment-service-monitor
+  namespace: observability
+  labels:
+    app: payment-service
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: payment-service
+  namespaceSelector:
+    matchNames:
+      - bookstore-prod
+      - bookstore-staging
+      - bookstore-dev
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: postgres-monitor
+  namespace: observability
+  labels:
+    app: postgres
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  namespaceSelector:
+    matchNames:
+      - bookstore-prod
+      - bookstore-staging
+      - bookstore-dev
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis-monitor
+  namespace: observability
+  labels:
+    app: redis
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  namespaceSelector:
+    matchNames:
+      - bookstore-prod
+      - bookstore-staging
+      - bookstore-dev
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s

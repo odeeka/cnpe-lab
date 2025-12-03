@@ -1,0 +1,62 @@
+# Phase 1: Foundation - Cluster Configuration
+# Creates a Kind cluster with proper node configuration
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: techcorp-platform
+nodes:
+  # Control plane node
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+
+  # Worker node 1 - General workloads
+  - role: worker
+    labels:
+      workload-type: general
+      topology.kubernetes.io/zone: zone-a
+    kubeadmConfigPatches:
+      - |
+        kind: JoinConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "workload-type=general,topology.kubernetes.io/zone=zone-a"
+
+  # Worker node 2 - General workloads
+  - role: worker
+    labels:
+      workload-type: general
+      topology.kubernetes.io/zone: zone-b
+    kubeadmConfigPatches:
+      - |
+        kind: JoinConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "workload-type=general,topology.kubernetes.io/zone=zone-b"
+
+  # Worker node 3 - Database workloads (with taint)
+  - role: worker
+    labels:
+      workload-type: database
+      topology.kubernetes.io/zone: zone-a
+    kubeadmConfigPatches:
+      - |
+        kind: JoinConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "workload-type=database,topology.kubernetes.io/zone=zone-a"
+          taints:
+            - key: "database"
+              value: "true"
+              effect: "NoSchedule"

@@ -1,0 +1,121 @@
+# Chaos Engineering Schedule
+# Run chaos experiments on a schedule to continuously validate resilience
+
+# Weekly Pod Failure Test
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosSchedule
+metadata:
+  name: weekly-pod-failure
+  namespace: bookstore-prod
+spec:
+  schedule:
+    now: false
+    repeat:
+      properties:
+        minChaosInterval: 168h  # Weekly
+      workHours:
+        includedHours: 10-14  # Only during work hours for observation
+        includedDays: "Mon,Tue,Wed,Thu,Fri"
+  engineTemplateSpec:
+    appinfo:
+      appns: bookstore-prod
+      applabel: app=api-gateway
+      appkind: deployment
+    chaosServiceAccount: litmus-admin
+    experiments:
+      - name: pod-delete
+        spec:
+          components:
+            env:
+              - name: TOTAL_CHAOS_DURATION
+                value: "30"
+              - name: PODS_AFFECTED_PERC
+                value: "33"
+---
+# Daily Network Latency Test (staging only)
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosSchedule
+metadata:
+  name: daily-network-latency
+  namespace: bookstore-staging
+spec:
+  schedule:
+    now: false
+    repeat:
+      properties:
+        minChaosInterval: 24h
+      workHours:
+        includedHours: 2-4  # Run at night
+        includedDays: "Mon,Tue,Wed,Thu,Fri"
+  engineTemplateSpec:
+    appinfo:
+      appns: bookstore-staging
+      applabel: app=catalog-service
+      appkind: deployment
+    chaosServiceAccount: litmus-admin
+    experiments:
+      - name: pod-network-latency
+        spec:
+          components:
+            env:
+              - name: NETWORK_LATENCY
+                value: "300"
+              - name: TOTAL_CHAOS_DURATION
+                value: "60"
+---
+# Game Day Configuration
+# Use this for planned chaos engineering sessions
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: game-day-config
+  namespace: bookstore-prod
+data:
+  game-day-plan.md: |
+    # BookStore Game Day Plan
+    
+    ## Objectives
+    - Validate system resilience under failure conditions
+    - Test monitoring and alerting capabilities
+    - Verify runbook procedures
+    - Train team on incident response
+    
+    ## Pre-Game Checklist
+    - [ ] Notify stakeholders
+    - [ ] Ensure monitoring dashboards are accessible
+    - [ ] Verify backup procedures are current
+    - [ ] Review rollback procedures
+    - [ ] Confirm team availability
+    
+    ## Experiments to Run
+    
+    ### Round 1: Pod Failures
+    1. Kill 1 API Gateway pod
+    2. Observe: Does traffic failover correctly?
+    3. Verify: HPA scales up replacement pods
+    
+    ### Round 2: Database Stress
+    1. Inject 500ms latency on PostgreSQL
+    2. Observe: Do circuit breakers activate?
+    3. Verify: Timeout handling in services
+    
+    ### Round 3: Network Partition
+    1. Block traffic between Order and Payment services
+    2. Observe: How are failed transactions handled?
+    3. Verify: Dead letter queues and retry logic
+    
+    ### Round 4: Zone Failure Simulation
+    1. Cordon nodes in one availability zone
+    2. Observe: Does pod anti-affinity work correctly?
+    3. Verify: Service continuity
+    
+    ## Post-Game Actions
+    - [ ] Document all findings
+    - [ ] Update runbooks based on learnings
+    - [ ] Create tickets for improvements
+    - [ ] Schedule follow-up experiments
+    
+    ## Abort Conditions
+    - Real production incident occurs
+    - Chaos causes data corruption
+    - Unable to recover within 15 minutes

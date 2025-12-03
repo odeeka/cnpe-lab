@@ -1,0 +1,55 @@
+# Development Environment Overlay
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: bookstore-dev
+
+resources:
+  - ../../base
+
+# Development-specific patches
+patches:
+  # Reduce replicas for dev
+  - patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+    target:
+      kind: Deployment
+  # Use dev images
+  - patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/memory
+        value: "128Mi"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "250m"
+    target:
+      kind: Deployment
+
+# Environment-specific labels
+commonLabels:
+  environment: development
+
+# Use development images
+images:
+  - name: bookstore/frontend
+    newTag: dev
+  - name: bookstore/api-gateway
+    newTag: dev
+  - name: bookstore/catalog-service
+    newTag: dev
+  - name: bookstore/order-service
+    newTag: dev
+  - name: bookstore/user-service
+    newTag: dev
+  - name: bookstore/payment-service
+    newTag: dev
+
+# Development-specific config
+configMapGenerator:
+  - name: environment-config
+    literals:
+      - ENVIRONMENT=development
+      - LOG_LEVEL=debug
+      - DEBUG=true

@@ -1,0 +1,91 @@
+# Security Context Examples for BookStore Application
+# These patches can be applied via Kustomize overlays
+
+# Example: Secure container security context
+# This follows the 'restricted' Pod Security Standard
+apiVersion: v1
+kind: Pod
+metadata:
+  name: security-context-example
+  namespace: bookstore-prod
+spec:
+  securityContext:
+    # Run as non-root user
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    # Prevent privilege escalation
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: app
+      image: bookstore/app:latest
+      securityContext:
+        # Drop all capabilities
+        capabilities:
+          drop:
+            - ALL
+        # Don't allow privilege escalation
+        allowPrivilegeEscalation: false
+        # Read-only root filesystem
+        readOnlyRootFilesystem: true
+        # Run as non-root
+        runAsNonRoot: true
+        runAsUser: 1000
+      volumeMounts:
+        # Mount tmp directory for apps that need to write temp files
+        - name: tmp
+          mountPath: /tmp
+        # Mount cache directory if needed
+        - name: cache
+          mountPath: /var/cache
+  volumes:
+    - name: tmp
+      emptyDir: {}
+    - name: cache
+      emptyDir: {}
+---
+# Kustomize patch for adding security context to all deployments
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: security-context-patch
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: "*"
+          securityContext:
+            capabilities:
+              drop:
+                - ALL
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+---
+# Service mesh sidecar security context (for Istio/Linkerd)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sidecar-security-context
+  namespace: bookstore-prod
+data:
+  security-context.yaml: |
+    # Istio sidecar security context
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsGroup: 1337
+      runAsNonRoot: true
+      runAsUser: 1337
